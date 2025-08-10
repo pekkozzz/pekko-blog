@@ -2,8 +2,8 @@ name: Deploy to JDCloud via Baota
 
 on:
   push:
-    branches: [main]    # 推送到 main 分支触发
-  workflow_dispatch:    # 也可以手动运行
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -18,12 +18,24 @@ jobs:
       - name: Install and Build (Astro)
         uses: withastro/action@v3
 
-      # 3. 上传构建产物到宝塔网站根目录
+      # 3. 清空宝塔网站目录，避免旧文件残留
+      - name: Clean old files on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            rm -rf /www/wwwroot/blog.pekko.top/*
+
+      # 4. 上传 dist 文件夹内所有文件和隐藏文件到宝塔网站目录
       - name: Upload Files to Baota Website
         uses: appleboy/scp-action@v0.1.6
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "dist/*"
-          target: "/www/wwwroot/blog.pekko.top"   # 宝塔站点目录（记得改成你自己的）
+          source: |
+            dist/*
+            dist/.[!.]*
+          target: "/www/wwwroot/blog.pekko.top"
