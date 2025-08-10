@@ -37,3 +37,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "dist/*"
           target: "/www/wwwroot/blog.pekko.top"
+          strip_components: 1
